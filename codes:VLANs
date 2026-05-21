@@ -1,0 +1,122 @@
+1. Router programming:
+
+enable
+configure terminal
+
+! تفعيل الواجهة الرئيسية
+interface g0/0
+ no shutdown
+exit
+
+! VLAN 10 - ADMIN
+interface g0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+exit
+
+! VLAN 20 - DOCTORS
+interface g0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+exit
+
+! VLAN 30 - LAB + تفعيل جدار الحماية لـمنع الوصول إلى الـ ADMIN
+interface g0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+ ip access-group 100 in
+exit
+
+! VLAN 40 - CCTV
+interface g0/0.40
+ encapsulation dot1Q 40
+ ip address 192.168.40.1 255.255.255.0
+exit
+
+! VLAN 50 - WIFI
+interface g0/0.50
+ encapsulation dot1Q 50
+ ip address 192.168.50.1 255.255.255.0
+exit
+
+! إنشاء قائمة التحكم بالوصول (ACL) لمنع شبكة المختبر من دخول الإدارة
+access-list 100 deny ip 192.168.30.0 0.0.0.255 192.168.10.0 0.0.0.255
+access-list 100 permit ip any any
+
+end
+write
+
+2. Switch programming:
+a) Creating VLANs:
+
+enable
+configure terminal
+
+vlan 10
+ name ADMIN
+vlan 20
+ name DOCTORS
+vlan 30
+ name LAB
+vlan 40
+ name CCTV
+vlan 50
+ name WIFI
+exit
+
+b) Setting up the Trunk window:
+Note: Make sure of the number of the connected port, for example fa0/24.
+interface fa0/24
+ switchport mode trunk
+exit
+
+c) Port allocation to devices (Access Ports):
+Based on the devices connected to each switch, the port is assigned to the appropriate VLAN:
+
+! مثال لجهاز كمبيوتر في قسم الإدارة (VLAN 10)
+interface fa0/1
+ switchport mode access
+ switchport access vlan 10
+exit
+
+! مثال لجهاز في قسم الأطباء (VLAN 20)
+interface fa0/2
+ switchport mode access
+ switchport access vlan 20
+exit
+
+! مثال لجهاز في المختبر (VLAN 30)
+interface fa0/3
+ switchport mode access
+ switchport access vlan 30
+exit
+
+! مثال لمنفذ الكاميرات (VLAN 40)
+interface fa0/4
+ switchport mode access
+ switchport access vlan 40
+exit
+
+Example of an Access Point port (VLAN 50):
+interface fa0/5
+ switchport mode access
+ switchport access vlan 50
+exit
+
+end
+write
+
+3. Wireless Network Configuration
+On the Access Point, go to Settings (Config -> Port 1) and configure the following options:
+
+SSID: Hospital_WiFi
+Authentication: WPA2-PSK
+Password: hospital123
+Make sure the device's power adapter is connected in the Packet Tracer software to avoid the red link problem.
+
+4. Device settings (PCs, Server & Cameras):
+Device IP addresses are programmed manually (Static IP) to avoid APIPA problems:
+ADMIN devices: The IP starts from 192.168.10.2 and the Gateway is 192.168.10.1
+DOCTORS devices: The IP address starts from 192.168.20.2 and the gateway is 192.168.20.1
+LAB devices: The IP address starts from 192.168.30.2 and the gateway is 192.168.30.1
+CCTV equipment: The IP address starts at 192.168.40.2 and the gateway is 192.168.40.1
